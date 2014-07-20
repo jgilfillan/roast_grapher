@@ -28,10 +28,10 @@ var w = window,
 
 //chart setup
 var margin = {top: 20, right: 20, bottom: 30, left: 50},
-    width = xSize - margin.left - margin.right - 100,
-    height = ySize - margin.top - margin.bottom - 100,
-    heightTemp = (ySize - margin.top - margin.bottom - 100) * 0.65,
-    heightTempChange = (ySize - margin.top - margin.bottom - 100) * 0.35;
+    width = xSize - margin.left - margin.right,
+    height = ySize - margin.top - margin.bottom,
+    heightTemp = (ySize - margin.top - margin.bottom) * 0.65,
+    heightTempChange = (ySize - margin.top - margin.bottom) * 0.35;
 
 var x = d3.scale.linear()
     .range([0, width]);
