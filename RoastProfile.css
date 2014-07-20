@@ -26,3 +26,8 @@ body {
 .chart-area {
 	padding: 60px 15px;
 }
+
+
+#customDropBoxButton {
+	padding-top: 7.5px;
+}

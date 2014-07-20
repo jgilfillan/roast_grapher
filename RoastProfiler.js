@@ -6,8 +6,12 @@ var dropBoxOptions = {
 	extensions: ['.csv']
 	};
 
-var button = Dropbox.createChooseButton(dropBoxOptions);
-document.getElementById("dropBoxButton").appendChild(button);
+function dropBoxOnClick() {
+	Dropbox.choose(dropBoxOptions);
+}
+
+// var button = Dropbox.createChooseButton(dropBoxOptions);
+// document.getElementById("dropBoxButton").appendChild(button);
 
 // globals
 var csvData;
@@ -25,7 +29,8 @@ var w = window,
 //chart setup
 var margin = {top: 20, right: 20, bottom: 30, left: 50},
     width = xSize - margin.left - margin.right - 100,
-    heightTemp = (ySize - margin.top - margin.bottom - 100) * 0.65;
+    height = ySize - margin.top - margin.bottom - 100,
+    heightTemp = (ySize - margin.top - margin.bottom - 100) * 0.65,
     heightTempChange = (ySize - margin.top - margin.bottom - 100) * 0.35;
 
 var x = d3.scale.linear()
@@ -34,14 +39,21 @@ var x = d3.scale.linear()
 var yTemp = d3.scale.linear()
     .range([heightTemp, 0]);
 
+var yTempChange = d3.scale.linear()
+    .range([heightTempChange, 0]);
+
 var xAxis = d3.svg.axis()
     .scale(x)
     .orient("bottom")
     .tickFormat(secondsFormatter)
     ;
 
-var yAxis = d3.svg.axis()
+var yAxisTemp = d3.svg.axis()
     .scale(yTemp)
+    .orient("left");
+
+var yAxisTempChange = d3.svg.axis()
+    .scale(yTempChange)
     .orient("left");
 
 var line = d3.svg.line()
@@ -50,14 +62,18 @@ var line = d3.svg.line()
 
 var svg = d3.select("#chart").append("svg")
     .attr("width", width + margin.left + margin.right)
-    .attr("height", heightTemp + margin.top + margin.bottom)
-  	.append("g")
+    .attr("height", height + margin.top + margin.bottom);
+
+var svgTemp = svg.append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-var xAxisg = svg.append("g")
+var svgTempChange = svg.append("g")
+    .attr("transform", "translate(" + margin.left + "," + (margin.top + heightTemp) + ")");
+
+var xAxisg = svgTemp.append("g")
       .attr("class", "x axis");
 
-var yAxisg = svg.append("g")
+var yAxisTempg = svgTemp.append("g")
       .attr("class", "y axis");
 
  //formatter for seconds to mm:ss
@@ -136,7 +152,7 @@ function drawChart(results, file) {
 	xAxisg.attr("transform", "translate(0," + heightTemp + ")")
       .call(xAxis);
 
-	yAxisg.call(yAxis)
+	yAxisTempg.call(yAxisTemp)
 	.append("text")
 	  .attr("transform", "rotate(-90)")
 	  .attr("y", 6)
@@ -144,7 +160,7 @@ function drawChart(results, file) {
 	  .style("text-anchor", "end")
 	  .text("Celcius");
 
-	var series = svg.selectAll('.line')
+	var series = svgTemp.selectAll('.line')
 	  .data([data]);
 
 	series.exit().remove;
