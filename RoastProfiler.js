@@ -52,7 +52,7 @@ var xAxis = d3.svg.axis()
 var yAxisTemp = d3.svg.axis()
     .scale(yTemp)
     .orient("left")
-    .ticks(Math.max(heightTemp/50, 2));
+    .ticks(Math.max(heightTemp/10, 2));
 
 var yAxisTempChange = d3.svg.axis()
     .scale(yTempChange)
@@ -161,7 +161,7 @@ function drawChart(results, file) {
 	  .attr("y", 6)
 	  .attr("dy", ".71em")
 	  .style("text-anchor", "end")
-	  .text("Celcius");
+	  .text("C");
 
 	var series = svgTemp.selectAll('.line')
 	  .data([data]);
