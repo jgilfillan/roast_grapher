@@ -22,16 +22,16 @@ var w = window,
     e = d.documentElement,
     g = d.getElementsByTagName('body')[0],
     xSize = parseInt(d3.select('.chart-area').style('width')),
-    ySize = xSize / 1.618
+    ySize = xSize / 1.618,
     ySizeTempChange = 0.35 * xSize;
 
 
 //chart setup
 var margin = {top: 20, right: 20, bottom: 30, left: 50},
-    width = xSize - margin.left - margin.right - 100,
-    height = ySize - margin.top - margin.bottom - 100,
-    heightTemp = (ySize - margin.top - margin.bottom - 100) * 0.65,
-    heightTempChange = (ySize - margin.top - margin.bottom - 100) * 0.35;
+    width = xSize - margin.left - margin.right,
+    height = ySize - margin.top - margin.bottom,
+    heightTemp = (ySize - margin.top - margin.bottom) * 0.65,
+    heightTempChange = (ySize - margin.top - margin.bottom) * 0.35;
 
 var x = d3.time.scale()
     .range([0, width]);
@@ -52,7 +52,7 @@ var xAxis = d3.svg.axis()
 var yAxisTemp = d3.svg.axis()
     .scale(yTemp)
     .orient("left")
-    .ticks(Math.max(heightTemp/10, 2));
+    .ticks(Math.max(heightTemp/20, 2));
 
 var yAxisTempChange = d3.svg.axis()
     .scale(yTempChange)
@@ -149,7 +149,7 @@ function drawChart(results, file) {
 	console.log(data);
 
 	x.domain(d3.extent(data, function(d) { return d.Time; })).ticks(d3.time.minute.utc, 1);
-  	yTemp.domain(d3.extent(data, function(d) { return d.Value1; }));
+  	yTemp.domain(d3.extent(data, function(d) { return d.Value1; })).nice();
   	// y.domain([0,d3.max(data, function(d) { return d.Value1; })] );
 
 	xAxisg.attr("transform", "translate(0," + heightTemp + ")")
