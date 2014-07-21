@@ -33,7 +33,7 @@ var margin = {top: 20, right: 20, bottom: 30, left: 50},
     heightTemp = (ySize - margin.top - margin.bottom) * 0.65,
     heightTempChange = (ySize - margin.top - margin.bottom) * 0.35;
 
-var x = d3.scale.linear()
+var x = d3.time.scale()
     .range([0, width]);
 
 var yTemp = d3.scale.linear()
@@ -45,7 +45,8 @@ var yTempChange = d3.scale.linear()
 var xAxis = d3.svg.axis()
     .scale(x)
     .orient("bottom")
-    .tickFormat(secondsFormatter)
+    .ticks(d3.time.minutes, 1)
+    .tickFormat(d3.time.format('%M'))
     ;
 
 var yAxisTemp = d3.svg.axis()
@@ -82,6 +83,7 @@ var yAxisTempg = svgTemp.append("g")
  	var sec = (+d - (Math.floor((+d)/60) * 60));
  	return min + ':' + ((sec < 10) ? '0' + sec : sec);
  }
+
 
 //filter to exclude data after pull
 function excludeDataAfterPull(d) {
@@ -139,13 +141,13 @@ function drawChart(results, file) {
 
 	//format columns to plot
 	data.forEach(function(d) {
-		d.Time = +d.Time;
-		d.Value1 = + d.Value1;
+		d.Time = new Date(2000, 1, 1, 0, Math.floor((+d.Time)/60), +d.Time - (Math.floor((+d.Time)/60) * 60), 0);
+		d.Value1 = +d.Value1;
 	});
 
 	console.log(data);
 
-	x.domain(d3.extent(data, function(d) { return d.Time; }));
+	x.domain(d3.extent(data, function(d) { return d.Time; })).ticks(d3.time.minute.utc, 1);
   	yTemp.domain(d3.extent(data, function(d) { return d.Value1; }));
   	// y.domain([0,d3.max(data, function(d) { return d.Value1; })] );
 
