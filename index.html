@@ -32,7 +32,8 @@
                     <!-- <li class="active"><a href="#">Home</a></li> -->
                     <!-- <li><a href="#about">About</a></li> -->
                     <!-- <li><a href="#contact">Contact</a></li> -->
-                    <li><div id='customDropBoxButton'><button type="button" class="btn btn-primary" onclick='dropBoxOnClick()'>Load file from Dropbox</button></div></li>
+                    <li><button type="button" class="btn btn-primary navbar-btn" onclick='dropBoxOnClick()'>Load file from Dropbox</button></li>
+                    <li><span class="btn btn-default btn-file btn-primary navbar-btn">Load from device<input type="file" id='csvFile' onchange='readLocalFile()'></span></li>
                 </ul>
             </div><!--/.nav-collapse -->
         </div>
@@ -49,6 +50,7 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <script src="js/bootstrap.min.js"></script>
+<script src="input_file_select.js"></script>
 <script src="RoastProfiler.js"></script>
 </body>
 </html>
