@@ -27,7 +27,7 @@ var w = window,
 
 
 //chart setup
-var margin = {top: 10, right: 10, bottom: 30, left: 10},
+var margin = {top: 10, right: 10, bottom: 30, left: 35},
     width = xSize - margin.left - margin.right,
     height = ySize - margin.top - margin.bottom,
     heightTemp = (ySize - margin.top - margin.bottom) * 0.65,
