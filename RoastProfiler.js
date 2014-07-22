@@ -25,7 +25,7 @@ var xSize = parseInt(d3.select('.chart-area').style('width')),
 
 
 //chart setup
-var margin = {top: 10, right: 10, bottom: 30, left: 35},
+var margin = {top: 10, right: 10, bottom: 30, left: 40},
     width = xSize - margin.left - margin.right,
     height = ySize - margin.top - margin.bottom,
     heightTemp = (ySize - margin.top - margin.bottom) * 0.65,
@@ -56,11 +56,16 @@ var yAxisTemp = d3.svg.axis()
 
 var yAxisTempChange = d3.svg.axis()
     .scale(yTempChange)
-    .orient("left");
+    .orient("left")
+    .ticks(Math.max(heightTempChange/20, 2));;
 
 var line = d3.svg.line()
     .x(function(d) { return x(+d.Time); })
     .y(function(d) { return yTemp(+d.Value1); });
+
+var lineTempChange = d3.svg.line()
+    .x(function(d) { return x(+d.Time); })
+    .y(function(d) { return yTempChange(+d.Value8); });
 
 var svg = d3.select("#chart").append("svg")
     .attr("width", width + margin.left + margin.right)
@@ -76,6 +81,12 @@ var xAxisg = svgTemp.append("g")
       .attr("class", "x axis");
 
 var yAxisTempg = svgTemp.append("g")
+      .attr("class", "y axis");
+
+var xAxisTempChangeg = svgTempChange.append('g')
+      .attr('class', 'x axis');
+
+var yAxisTempChangeg = svgTempChange.append("g")
       .attr("class", "y axis");
 
  //formatter for seconds to mm:ss
@@ -144,6 +155,7 @@ function drawChart(results, file) {
   data.forEach(function(d) {
     d.Time = new Date(2000, 1, 1, 0, Math.floor((+d.Time)/60), +d.Time - (Math.floor((+d.Time)/60) * 60), 0);
     d.Value1 = +d.Value1;
+    d.Value8 = +d.Value8;
   });
 
   console.log(data);
@@ -174,4 +186,32 @@ function drawChart(results, file) {
     .attr("d", line);
 
   series.attr("d", line);
+
+
+//temp change chart
+  yTempChange.domain(d3.extent(data, function(d) { return d.Value8; })).nice();
+
+  xAxisTempChangeg.attr("transform", "translate(0," + heightTempChange + ")")
+      .call(xAxis);
+
+  yAxisTempChangeg.call(yAxisTempChange)
+  .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 6)
+    .attr("dy", ".71em")
+    .style("text-anchor", "end");
+    // .text("ºC");
+
+
+  var seriesTempChange = svgTempChange.selectAll('.line')
+    .data([data]);
+
+  seriesTempChange.exit().remove;
+
+  seriesTempChange.enter()
+    .append("path")
+    .attr("class", "line")
+    .attr("d", lineTempChange);
+
+  seriesTempChange.attr("d", lineTempChange);
 }
