@@ -9,6 +9,13 @@ body {
   shape-rendering: crispEdges;
 }
 
+@media all and (max-width: 500px) { /* screen size until 500px */
+      .axis text {
+        font-size: 0.7em;
+      }
+    }
+
+
 /*.x.axis path {
   display: none;
 }
@@ -24,7 +31,7 @@ body {
 }
 
 .chart-area {
-	padding: 60px 15px;
+	padding-top: 60px;
 }
 
 
@@ -50,4 +57,8 @@ body {
     background: white;
     cursor: inherit;
     display: block;
+}
+
+.navbar-btn {
+  margin-left: 10px;
 }
