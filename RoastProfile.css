@@ -10,7 +10,7 @@ body {
 }
 
 @media all and (max-width: 500px) { /* screen size until 500px */
-      .axis text {
+      #chart text {
         font-size: 0.7em;
       }
     }

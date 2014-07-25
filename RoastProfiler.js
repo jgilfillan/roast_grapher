@@ -25,11 +25,11 @@ var xSize = parseInt(d3.select('.chart-area').style('width')),
 
 
 //chart setup
-var margin = {top: 10, right: 10, bottom: 30, left: 40},
+var margin = {top: 10, right: 10, bottom: 30, left: 40, internal: 50},
     width = xSize - margin.left - margin.right,
-    height = ySize - margin.top - margin.bottom,
-    heightTemp = (ySize - margin.top - margin.bottom) * 0.65,
-    heightTempChange = (ySize - margin.top - margin.bottom) * 0.35;
+    height = ySize - margin.top - margin.bottom - margin.internal,
+    heightTemp = height * 0.65,
+    heightTempChange = height * 0.35;
 
 
 
@@ -69,13 +69,13 @@ var lineTempChange = d3.svg.line()
 
 var svg = d3.select("#chart").append("svg")
     .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom);
+    .attr("height", height + margin.top + margin.bottom + margin.internal);
 
 var svgTemp = svg.append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 var svgTempChange = svg.append("g")
-    .attr("transform", "translate(" + margin.left + "," + (margin.top + heightTemp) + ")");
+    .attr("transform", "translate(" + margin.left + "," + (margin.top + margin.internal + heightTemp) + ")");
 
 var xAxisg = svgTemp.append("g")
       .attr("class", "x axis");
@@ -147,9 +147,9 @@ function readDropBoxFile(files) {
 }
 
 function drawChart(results, file) {
-  //console.log(results.data);
-
-  var data = excludeDataAfterPull(results.data);
+  var data = excludeDataAfterPull(results.data),
+    series = svgTemp.selectAll('.line').data([data]),
+    seriesTempChange = svgTempChange.selectAll('.line').data([data]);
 
   //format columns to plot
   data.forEach(function(d) {
@@ -175,8 +175,7 @@ function drawChart(results, file) {
     .style("text-anchor", "end")
     .text("ºC");
 
-  var series = svgTemp.selectAll('.line')
-    .data([data]);
+
 
   series.exit().remove;
 
@@ -190,6 +189,7 @@ function drawChart(results, file) {
 
 //temp change chart
   yTempChange.domain(d3.extent(data, function(d) { return d.Value8; })).nice();
+  // yTempChange.domain([0, d3.max(data, function(d) { return d.Value8; })]).nice();
 
   xAxisTempChangeg.attr("transform", "translate(0," + heightTempChange + ")")
       .call(xAxis);
@@ -203,8 +203,7 @@ function drawChart(results, file) {
     // .text("ºC");
 
 
-  var seriesTempChange = svgTempChange.selectAll('.line')
-    .data([data]);
+
 
   seriesTempChange.exit().remove;
 
