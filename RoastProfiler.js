@@ -111,6 +111,14 @@ function excludeDataAfterPull(d) {
 
 }
 
+function excludeTempChangeDataBefore0(data) {
+  var minY = d3.min(data, function(d) {return +d.Value8;}),
+    minX = data.filter(function(d) {return +d.Value8 == minY;})[0].Time,
+    result = data.filter(function(d) {return (+d.Time > minX && +d.Value8 >= 0);});
+
+    return result;
+}
+
 
 function readLocalFile() {
   csvData = Papa.parse(document.getElementById('csvFile').files[0], {
@@ -148,15 +156,23 @@ function readDropBoxFile(files) {
 
 function drawChart(results, file) {
   var data = excludeDataAfterPull(results.data),
+      dataTempChange,
+      series,
+      seriesTempChange;
+
+    data.forEach(function(d) {
+      d.Time = new Date(2000, 1, 1, 0, Math.floor((+d.Time)/60), +d.Time - (Math.floor((+d.Time)/60) * 60), 0);
+      d.Value1 = +d.Value1;
+      d.Value8 = +d.Value8;
+    });
+
+    dataTempChange = excludeTempChangeDataBefore0(data);
+
     series = svgTemp.selectAll('.line').data([data]),
-    seriesTempChange = svgTempChange.selectAll('.line').data([data]);
+    seriesTempChange = svgTempChange.selectAll('.line').data([dataTempChange]);
 
   //format columns to plot
-  data.forEach(function(d) {
-    d.Time = new Date(2000, 1, 1, 0, Math.floor((+d.Time)/60), +d.Time - (Math.floor((+d.Time)/60) * 60), 0);
-    d.Value1 = +d.Value1;
-    d.Value8 = +d.Value8;
-  });
+
 
   console.log(data);
 
@@ -188,7 +204,7 @@ function drawChart(results, file) {
 
 
 //temp change chart
-  yTempChange.domain(d3.extent(data, function(d) { return d.Value8; })).nice();
+  yTempChange.domain(d3.extent(dataTempChange, function(d) { return d.Value8; })).nice();
   // yTempChange.domain([0, d3.max(data, function(d) { return d.Value8; })]).nice();
 
   xAxisTempChangeg.attr("transform", "translate(0," + heightTempChange + ")")
@@ -201,9 +217,6 @@ function drawChart(results, file) {
     .attr("dy", ".71em")
     .style("text-anchor", "end");
     // .text("ºC");
-
-
-
 
   seriesTempChange.exit().remove;
 
