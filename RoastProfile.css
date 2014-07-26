@@ -59,6 +59,6 @@ body {
     display: block;
 }
 
-.navbar-btn {
-  margin-left: 10px;
+#navmenu-padded {
+  margin: 0px 20px 0px 20px;
 }
