@@ -16,7 +16,7 @@ html, body {
   left: 0;
   z-index: 2;
   min-height: 100%;
-  /*padding: 50px 0 0 0;*/
+  padding: 0 0 0 0;
   background: #fff;
 }
 
@@ -38,18 +38,4 @@ html, body {
   .canvas {
     padding: 0;
   }
-}
-
-#ra-nav-bar {
-  background-color: #fff;
-  border-color: #fff;
-}
-
-#ra-nav-bar {
-  background-color: #fff;
-  border-color: #fff;
-}
-
-.navmenu-ra {
-  width: 210px;
 }
