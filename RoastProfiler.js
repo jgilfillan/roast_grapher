@@ -4,90 +4,93 @@ var dropBoxOptions = {
   linkType: 'direct',
   multiselect: false,
   extensions: ['.csv']
-  };
+  },
+  csvData,
+  xSize,
+  ySize,
+  ySizeTempChange,
+  margin = {top: 10, right: 10, bottom: 30, left: 40, internal: 50},
+  width,
+  height,
+  heightTemp,
+  heightTempChange,
+  x = d3.time.scale(),
+  yTemp = d3.scale.linear(),
+  yTempChange = d3.scale.linear(),
+  xAxis = d3.svg.axis(),
+  yAxisTemp = d3.svg.axis(),
+  yAxisTempChange = d3.svg.axis(),
+  line = d3.svg.line(),
+  lineTempChange = d3.svg.line(),
+  svg= d3.select("#chart").append("svg"),
+  svgTemp = svg.append("g"),
+  svgTempChange = svg.append("g"),
+  xAxisg = svgTemp.append("g"),
+  yAxisTempg = svgTemp.append("g"),
+  xAxisTempChangeg = svgTempChange.append("g"),
+  yAxisTempChangeg = svgTempChange.append("g")
+  ;
 
-function dropBoxOnClick() {
-  Dropbox.choose(dropBoxOptions);
-}
-
-// var button = Dropbox.createChooseButton(dropBoxOptions);
-// document.getElementById("dropBoxButton").appendChild(button);
-
-// globals
-var csvData;
-
+function resizeChartArea() {
 // responsive variables
-var xSize = parseInt(d3.select('.chart-area').style('width')),
-    ySize = xSize / 1.618,
-    ySizeTempChange = 0.35 * xSize;
-
-    console.log(xSize);
-
+xSize = parseInt(d3.select('.chart-area').style('width'));
+ySize = xSize / 1.618;
+ySizeTempChange = 0.35 * xSize;
 
 //chart setup
-var margin = {top: 10, right: 10, bottom: 30, left: 40, internal: 50},
-    width = xSize - margin.left - margin.right,
-    height = ySize - margin.top - margin.bottom - margin.internal,
-    heightTemp = height * 0.65,
-    heightTempChange = height * 0.35;
+width = xSize - margin.left - margin.right;
+height = ySize - margin.top - margin.bottom - margin.internal;
+heightTemp = height * 0.65;
+heightTempChange = height * 0.35;
 
 
 
-var x = d3.time.scale()
-    .range([0, width]);
+x.range([0, width]);
 
-var yTemp = d3.scale.linear()
-    .range([heightTemp, 0]);
+yTemp.range([heightTemp, 0]);
 
-var yTempChange = d3.scale.linear()
-    .range([heightTempChange, 0]);
+yTempChange.range([heightTempChange, 0]);
 
-var xAxis = d3.svg.axis()
-    .scale(x)
+xAxis.scale(x)
     .orient("bottom")
     .ticks(d3.time.minutes, 1)
     .tickFormat(d3.time.format('%M'))
     ;
 
-var yAxisTemp = d3.svg.axis()
-    .scale(yTemp)
+yAxisTemp.scale(yTemp)
     .orient("left")
     .ticks(Math.max(heightTemp/20, 2));
 
-var yAxisTempChange = d3.svg.axis()
-    .scale(yTempChange)
+yAxisTempChange.scale(yTempChange)
     .orient("left")
     .ticks(Math.max(heightTempChange/20, 2));;
 
-var line = d3.svg.line()
-    .x(function(d) { return x(+d.Time); })
+line.x(function(d) { return x(+d.Time); })
     .y(function(d) { return yTemp(+d.Value1); });
 
-var lineTempChange = d3.svg.line()
-    .x(function(d) { return x(+d.Time); })
+lineTempChange.x(function(d) { return x(+d.Time); })
     .y(function(d) { return yTempChange(+d.Value8); });
 
-var svg = d3.select("#chart").append("svg")
-    .attr("width", width + margin.left + margin.right)
+svg.attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom + margin.internal);
 
-var svgTemp = svg.append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+svgTemp.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-var svgTempChange = svg.append("g")
-    .attr("transform", "translate(" + margin.left + "," + (margin.top + margin.internal + heightTemp) + ")");
+svgTempChange.attr("transform", "translate(" + margin.left + "," + (margin.top + margin.internal + heightTemp) + ")");
 
-var xAxisg = svgTemp.append("g")
-      .attr("class", "x axis");
+xAxisg.attr("class", "x axis");
 
-var yAxisTempg = svgTemp.append("g")
-      .attr("class", "y axis");
+yAxisTempg.attr("class", "y axis");
 
-var xAxisTempChangeg = svgTempChange.append('g')
-      .attr('class', 'x axis');
+xAxisTempChangeg.attr('class', 'x axis');
 
-var yAxisTempChangeg = svgTempChange.append("g")
-      .attr("class", "y axis");
+yAxisTempChangeg.attr("class", "y axis");
+
+}
+
+function dropBoxOnClick() {
+  Dropbox.choose(dropBoxOptions);
+}
 
  //formatter for seconds to mm:ss
  function secondsFormatter(d) {
@@ -167,6 +170,8 @@ function drawChart(results, file) {
     });
 
     dataTempChange = excludeTempChangeDataBefore0(data);
+
+    resizeChartArea();
 
     series = svgTemp.selectAll('.line').data([data]),
     seriesTempChange = svgTempChange.selectAll('.line').data([dataTempChange]);

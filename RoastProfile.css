@@ -30,11 +30,6 @@ body {
 	padding-top: 15px;
 }
 
-/*.chart-area {
-	padding-top: 60px;
-}*/
-
-
 #customDropBoxButton {
 	padding-top: 7.5px;
 }
@@ -61,4 +56,10 @@ body {
 
 #navmenu-padded {
   margin: 0px 20px 0px 20px;
+}
+
+/* set padding around chart */
+.chart-area {
+  padding-left: 0px;
+  padding-right: 0px;
 }
