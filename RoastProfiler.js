@@ -28,7 +28,9 @@ var dropBoxOptions = {
   xAxisg = svgTemp.append("g"),
   yAxisTempg = svgTemp.append("g"),
   xAxisTempChangeg = svgTempChange.append("g"),
-  yAxisTempChangeg = svgTempChange.append("g")
+  yAxisTempChangeg = svgTempChange.append("g"),
+  data = []
+  dataTempChange = []
   ;
 
 function resizeChartArea() {
@@ -92,13 +94,6 @@ function dropBoxOnClick() {
   Dropbox.choose(dropBoxOptions);
 }
 
- //formatter for seconds to mm:ss
- function secondsFormatter(d) {
-  var min = Math.floor((+d)/60);
-  var sec = (+d - (Math.floor((+d)/60) * 60));
-  return min + ':' + ((sec < 10) ? '0' + sec : sec);
- }
-
 
 //filter to exclude data after pull
 function excludeDataAfterPull(d) {
@@ -158,31 +153,43 @@ function readDropBoxFile(files) {
 }
 
 function drawChart(results, file) {
-  var data = excludeDataAfterPull(results.data),
-      dataTempChange,
-      series,
-      seriesTempChange;
+  var series,
+    seriesTempChange;
 
-    data.forEach(function(d) {
+  data.push(excludeDataAfterPull(results.data).map(function(d) {
       d.Time = new Date(2000, 1, 1, 0, Math.floor((+d.Time)/60), +d.Time - (Math.floor((+d.Time)/60) * 60), 0);
       d.Value1 = +d.Value1;
       d.Value8 = +d.Value8;
-    });
+      return d;
+    })
 
-    dataTempChange = excludeTempChangeDataBefore0(data);
+    );
+
+    // data[0].forEach(function(d) {
+    //   d.Time = new Date(2000, 1, 1, 0, Math.floor((+d.Time)/60), +d.Time - (Math.floor((+d.Time)/60) * 60), 0);
+    //   d.Value1 = +d.Value1;
+    //   d.Value8 = +d.Value8;
+    // });
+    console.log(data);
+    // dataTempChange.push(excludeTempChangeDataBefore0(data[0]));
+
+    dataTempChange = data.map(function(d) {return excludeTempChangeDataBefore0(d);})
+
+    // console.log(dataTempChange);
 
     resizeChartArea();
 
-    series = svgTemp.selectAll('.line').data([data]),
-    seriesTempChange = svgTempChange.selectAll('.line').data([dataTempChange]);
+    series = svgTemp.selectAll('.line').data(data),
+    seriesTempChange = svgTempChange.selectAll('.line').data(dataTempChange);
 
   //format columns to plot
 
 
-  console.log(data);
+  console.log('extents', d3.extent(data[0], function(d) { return d.Time; }));
 
-  x.domain(d3.extent(data, function(d) { return d.Time; })).ticks(d3.time.minute.utc, 1);
-    yTemp.domain(d3.extent(data, function(d) { return d.Value1; })).nice();
+  x.domain(d3.extent(Array.prototype.concat.apply([], data), function(d) { return d.Time; })).ticks(d3.time.minute.utc, 1);
+  console.log('x domain', x.domain());
+  yTemp.domain(d3.extent(Array.prototype.concat.apply([], data), function(d) { return d.Value1; })).nice();
     // y.domain([0,d3.max(data, function(d) { return d.Value1; })] );
 
   xAxisg.attr("transform", "translate(0," + heightTemp + ")")
@@ -209,7 +216,7 @@ function drawChart(results, file) {
 
 
 //temp change chart
-  yTempChange.domain(d3.extent(dataTempChange, function(d) { return d.Value8; })).nice();
+  yTempChange.domain(d3.extent(dataTempChange[0], function(d) { return d.Value8; })).nice();
   // yTempChange.domain([0, d3.max(data, function(d) { return d.Value8; })]).nice();
 
   xAxisTempChangeg.attr("transform", "translate(0," + heightTempChange + ")")
@@ -232,3 +239,9 @@ function drawChart(results, file) {
 
   seriesTempChange.attr("d", lineTempChange);
 }
+
+function resize() {
+  //put resize logic here
+}
+
+d3.select(window).on('resize', resize); 
