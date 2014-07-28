@@ -91,7 +91,7 @@ xAxisTempChangeg.attr('class', 'x axis');
 
 yAxisTempChangeg.attr("class", "y axis");
 
-drawChart();
+if (data.length > 0) { drawChart(); }
 
 
 }
