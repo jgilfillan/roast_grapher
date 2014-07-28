@@ -18,16 +18,21 @@ var dropBoxOptions = {
   yRoR = d3.scale.linear(),
   xAxis = d3.svg.axis(),
   yAxisTemp = d3.svg.axis(),
+  xAxisRoR = d3.svg.axis(),
   yAxisRoR = d3.svg.axis(),
   line = d3.svg.line(),
   lineRoR = d3.svg.line(),
   svg= d3.select("#chart").append("svg"),
   svgTemp = svg.append("g"),
   svgRoR = svg.append("g"),
-  xAxisg = svgTemp.append("g"),
-  yAxisTempg = svgTemp.append("g"),
-  xAxisRoRg = svgRoR.append("g"),
-  yAxisRoRg = svgRoR.append("g"),
+  xAxisGrid = svgTemp.append("g").attr("class", "x axis grid-x"),
+  yAxisTempGrid = svgTemp.append("g").attr("class", "y axis grid-y"),
+  xAxisg = svgTemp.append("g").attr("class", "x axis"),
+  yAxisTempg = svgTemp.append("g").attr("class", "y axis"),
+  xAxisRoRGrid = svgRoR.append("g").attr('class', 'x axis grid-x'),
+  yAxisRoRGrid = svgRoR.append("g").attr('class', 'y axis grid-y'),
+  xAxisRoRg = svgRoR.append("g").attr('class', 'x axis'),
+  yAxisRoRg = svgRoR.append("g").attr('class', 'y axis'),
   data = [],
   dataRoR = [],
   colorScale = d3.scale.ordinal().range(colorbrewer.Set1[5]).domain([0, 4])
@@ -60,6 +65,12 @@ function resizeChartArea() {
       .orient("left")
       .ticks(Math.max(heightTemp/20, 2));
 
+  xAxisRoR.scale(x)
+    .orient("bottom")
+    .ticks(d3.time.minutes, 1)
+    .tickFormat(d3.time.format('%M'))
+    ;
+
   yAxisRoR.scale(yRoR)
       .orient("left")
       .ticks(Math.max(heightRoR/20, 2));;
@@ -77,13 +88,13 @@ function resizeChartArea() {
 
   svgRoR.attr("transform", "translate(" + margin.left + "," + (margin.top + margin.internal + heightTemp) + ")");
 
-  xAxisg.attr("class", "x axis");
+  // xAxisg.attr("class", "x axis");
 
-  yAxisTempg.attr("class", "y axis");
+  // yAxisTempg.attr("class", "y axis");
 
-  xAxisRoRg.attr('class', 'x axis');
+  // xAxisRoRg;
 
-  yAxisRoRg.attr("class", "y axis");
+  // yAxisRoRg.attr("class", "y axis");
 
   //only draw chart if there is data
   if (data.length > 0) { drawChart(); }
@@ -151,7 +162,27 @@ function readDropBoxFile(files) {
   );
 }
 
+
+// function addCSV(fileName) {
+//   return function(results, file) {
+//     data.push(excludeDataAfterPull(results.data).map(function(d) {
+//       d.Time = new Date(2000, 1, 1, 0, Math.floor((+d.Time)/60), +d.Time - (Math.floor((+d.Time)/60) * 60), 0);
+//       d.Value1 = +d.Value1;
+//       d.Value8 = +d.Value8;
+//       return {fileName: fileName, data: d};
+//       })
+//     );
+
+//     dataRoR = data.map(function(d) {return excludeRoRDataBefore0(d);})
+
+//     // now resize char area and draw chart
+//     resizeChartArea();
+//   };
+// }
+
 function processCSV(results, file) {
+
+
   data.push(excludeDataAfterPull(results.data).map(function(d) {
     d.Time = new Date(2000, 1, 1, 0, Math.floor((+d.Time)/60), +d.Time - (Math.floor((+d.Time)/60) * 60), 0);
     d.Value1 = +d.Value1;
@@ -178,9 +209,9 @@ function drawChart() {
 
   xAxisg.attr("transform", "translate(0," + heightTemp + ")")
       .transition().duration(1500)
-      .call(xAxis);
+      .call(xAxis.tickSize(null).tickFormat(d3.time.format('%M')));
 
-  yAxisTempg.transition().duration(1500).call(yAxisTemp);
+  yAxisTempg.transition().duration(1500).call(yAxisTemp.tickSize(null).tickFormat(null));
   yAxisTempg.append("text")
     .attr("transform", "rotate(-90)")
     .attr("y", 6)
@@ -208,14 +239,14 @@ function drawChart() {
 
   xAxisRoRg.attr("transform", "translate(0," + heightRoR + ")")
     .transition().duration(1500)
-    .call(xAxis);
+    .call(xAxisRoR.tickSize(null).tickFormat(d3.time.format('%M')));
 
-  yAxisRoRg.transition().duration(1500).call(yAxisRoR);
-  yAxisRoRg.append("text")
-    .attr("transform", "rotate(-90)")
-    .attr("y", 6)
-    .attr("dy", ".71em")
-    .style("text-anchor", "end");
+  yAxisRoRg.transition().duration(1500).call(yAxisRoR.tickSize(null).tickFormat(null));
+  // yAxisRoRg.append("text")
+  //   .attr("transform", "rotate(-90)")
+  //   .attr("y", 6)
+  //   .attr("dy", ".71em")
+  //   .style("text-anchor", "end");
     // .text("ºC");
 
   seriesRoR.exit().transition().duration(1500).remove;
@@ -227,6 +258,15 @@ function drawChart() {
     .style('stroke', function(d, i) {return colorScale(i);});
 
   seriesRoR.transition().duration(1500).attr("d", lineRoR);
+
+  //grid lines
+  
+
+yAxisTempGrid.transition().duration(1500).call(yAxisTemp.tickSize(-width, 0, 0).tickFormat(""));
+xAxisGrid.attr("transform", "translate(0," + heightTemp + ")").transition().duration(1500).call(xAxis.tickSize(-heightTemp, 0, 0).tickFormat(""));
+
+yAxisRoRGrid.transition().duration(1500).call(yAxisRoR.tickSize(-width, 0, 0).tickFormat(""));
+xAxisRoRGrid.attr("transform", "translate(0," + heightRoR + ")").transition().duration(1500).call(xAxisRoR.tickSize(-heightRoR, 0, 0).tickFormat(""));
 }
 
 d3.select(window).on('resize', resizeChartArea); 
