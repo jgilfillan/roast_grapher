@@ -8,7 +8,6 @@ var dropBoxOptions = {
   csvData,
   xSize,
   ySize,
-  ySizeTempChange,
   margin = {top: 10, right: 10, bottom: 30, left: 40, internal: 50},
   width,
   height,
@@ -29,15 +28,19 @@ var dropBoxOptions = {
   yAxisTempg = svgTemp.append("g"),
   xAxisTempChangeg = svgTempChange.append("g"),
   yAxisTempChangeg = svgTempChange.append("g"),
-  data = []
-  dataTempChange = []
+  data = [],
+  dataTempChange = [],
+  colorScale = d3.scale.ordinal().range(colorbrewer.Set1[5]).domain([0, 4])
   ;
 
 function resizeChartArea() {
 // responsive variables
 xSize = parseInt(d3.select('.chart-area').style('width'));
-ySize = xSize / 1.618;
-ySizeTempChange = 0.35 * xSize;
+ySize = window.innerHeight - 80;
+
+
+
+console.log(xSize, ySize);
 
 //chart setup
 width = xSize - margin.left - margin.right;
@@ -88,6 +91,9 @@ xAxisTempChangeg.attr('class', 'x axis');
 
 yAxisTempChangeg.attr("class", "y axis");
 
+drawChart();
+
+
 }
 
 function dropBoxOnClick() {
@@ -128,7 +134,7 @@ function readLocalFile() {
     encoding: "",
     worker: false,
     comments: false,
-    complete: drawChart,    //callback function
+    complete: processCSV,    //callback function
     download: false
     }
   );
@@ -146,57 +152,50 @@ function readDropBoxFile(files) {
     encoding: "",
     worker: false,
     comments: false,
-    complete: drawChart,    //callback function
+    complete: processCSV,    //callback function
     download: true
     }
   );
 }
 
-function drawChart(results, file) {
+function processCSV(results, file) {
+  data.push(excludeDataAfterPull(results.data).map(function(d) {
+    d.Time = new Date(2000, 1, 1, 0, Math.floor((+d.Time)/60), +d.Time - (Math.floor((+d.Time)/60) * 60), 0);
+    d.Value1 = +d.Value1;
+    d.Value8 = +d.Value8;
+    return d;
+    })
+  );
+
+  dataTempChange = data.map(function(d) {return excludeTempChangeDataBefore0(d);})
+
+  // now draw chart
+  resizeChartArea();
+}
+
+function drawChart() {
   var series,
     seriesTempChange;
 
-  data.push(excludeDataAfterPull(results.data).map(function(d) {
-      d.Time = new Date(2000, 1, 1, 0, Math.floor((+d.Time)/60), +d.Time - (Math.floor((+d.Time)/60) * 60), 0);
-      d.Value1 = +d.Value1;
-      d.Value8 = +d.Value8;
-      return d;
-    })
 
-    );
-
-    // data[0].forEach(function(d) {
-    //   d.Time = new Date(2000, 1, 1, 0, Math.floor((+d.Time)/60), +d.Time - (Math.floor((+d.Time)/60) * 60), 0);
-    //   d.Value1 = +d.Value1;
-    //   d.Value8 = +d.Value8;
-    // });
-    console.log(data);
-    // dataTempChange.push(excludeTempChangeDataBefore0(data[0]));
-
-    dataTempChange = data.map(function(d) {return excludeTempChangeDataBefore0(d);})
-
-    // console.log(dataTempChange);
-
-    resizeChartArea();
-
-    series = svgTemp.selectAll('.line').data(data),
-    seriesTempChange = svgTempChange.selectAll('.line').data(dataTempChange);
+    series = svgTemp.selectAll('.line').data(data, function(d, i) {return i;}),
+    seriesTempChange = svgTempChange.selectAll('.line').data(dataTempChange, function(d, i) {return i;});
 
   //format columns to plot
 
 
-  console.log('extents', d3.extent(data[0], function(d) { return d.Time; }));
-
+  // console.log('extents', d3.extent(data[0], function(d) { return d.Time; }));
+  // colorScale.domain([0, data.length - 1]);
   x.domain(d3.extent(Array.prototype.concat.apply([], data), function(d) { return d.Time; })).ticks(d3.time.minute.utc, 1);
-  console.log('x domain', x.domain());
   yTemp.domain(d3.extent(Array.prototype.concat.apply([], data), function(d) { return d.Value1; })).nice();
     // y.domain([0,d3.max(data, function(d) { return d.Value1; })] );
 
   xAxisg.attr("transform", "translate(0," + heightTemp + ")")
+      .transition().duration(1500)
       .call(xAxis);
 
-  yAxisTempg.call(yAxisTemp)
-  .append("text")
+  yAxisTempg.transition().duration(1500).call(yAxisTemp);
+  yAxisTempg.append("text")
     .attr("transform", "rotate(-90)")
     .attr("y", 6)
     .attr("dy", ".71em")
@@ -205,43 +204,48 @@ function drawChart(results, file) {
 
 
 
-  series.exit().remove;
-
+  // entering series
   series.enter()
     .append("path")
     .attr("class", "line")
-    .attr("d", line);
+    .attr("d", line)
+    .style('stroke', function(d, i) {return colorScale(i);})
+    ;
 
-  series.attr("d", line);
+  // updated series
+  series.transition().duration(1500).attr("d", line);
+
+  // exiting series
+  series.exit().remove();
 
 
 //temp change chart
-  yTempChange.domain(d3.extent(dataTempChange[0], function(d) { return d.Value8; })).nice();
+  yTempChange.domain(d3.extent(Array.prototype.concat.apply([], dataTempChange), function(d) { return d.Value8; })).nice();
   // yTempChange.domain([0, d3.max(data, function(d) { return d.Value8; })]).nice();
 
   xAxisTempChangeg.attr("transform", "translate(0," + heightTempChange + ")")
-      .call(xAxis);
+    .transition().duration(1500)
+    .call(xAxis);
 
-  yAxisTempChangeg.call(yAxisTempChange)
-  .append("text")
+  yAxisTempChangeg.transition().duration(1500).call(yAxisTempChange);
+  yAxisTempChangeg.append("text")
     .attr("transform", "rotate(-90)")
     .attr("y", 6)
     .attr("dy", ".71em")
     .style("text-anchor", "end");
     // .text("ºC");
 
-  seriesTempChange.exit().remove;
+  seriesTempChange.exit().transition().duration(1500).remove;
 
   seriesTempChange.enter()
     .append("path")
     .attr("class", "line")
-    .attr("d", lineTempChange);
+    .attr("d", lineTempChange)
+    .style('stroke', function(d, i) {return colorScale(i);});
 
-  seriesTempChange.attr("d", lineTempChange);
+  seriesTempChange.transition().duration(1500).attr("d", lineTempChange);
 }
 
-function resize() {
-  //put resize logic here
-}
+d3.select(window).on('resize', resizeChartArea); 
 
-d3.select(window).on('resize', resize); 
+// console.log(window.innerWidth, window.innerHeight);
