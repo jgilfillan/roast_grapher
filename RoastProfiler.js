@@ -269,7 +269,13 @@ function drawChart() {
   
 
 yAxisTempGrid.transition().duration(1500).call(yAxisTemp.tickSize(-width, 0, 0).tickFormat(""));
-xAxisGrid.attr("transform", "translate(0," + heightTemp + ")").transition().duration(1500).call(xAxis.tickSize(-heightTemp, 0, 0).tickFormat(""));
+
+if (xAxisGrid.attr("transform") {
+  xAxisGrid.transition().duration(1500).attr("transform", "translate(0," + heightTemp + ")").call(xAxis.tickSize(-heightTemp, 0, 0).tickFormat(""));
+}
+else {
+  xAxisGrid.attr("transform", "translate(0," + heightTemp + ")").call(xAxis.tickSize(-heightTemp, 0, 0).tickFormat(""));
+}
 
 yAxisRoRGrid.transition().duration(1500).call(yAxisRoR.tickSize(-width, 0, 0).tickFormat(""));
 xAxisRoRGrid.attr("transform", "translate(0," + heightRoR + ")").transition().duration(1500).call(xAxisRoR.tickSize(-heightRoR, 0, 0).tickFormat(""));
