@@ -207,9 +207,15 @@ function drawChart() {
   x.domain(d3.extent(Array.prototype.concat.apply([], data), function(d) { return d.Time; })).ticks(d3.time.minute.utc, 1);
   yTemp.domain(d3.extent(Array.prototype.concat.apply([], data), function(d) { return d.Value1; })).nice();
 
+  if (xAxisg.attr('transform')) {
   xAxisg.transition().duration(1500)
       .attr("transform", "translate(0," + heightTemp + ")")
       .call(xAxis.tickSize(null).tickFormat(d3.time.format('%M')));
+  }
+  else {
+    xAxisg.attr("transform", "translate(0," + heightTemp + ")")
+      .call(xAxis.tickSize(null).tickFormat(d3.time.format('%M')));
+  }
 
   yAxisTempg.transition().duration(1500).call(yAxisTemp.tickSize(null).tickFormat(null));
   yAxisTempg.append("text")
