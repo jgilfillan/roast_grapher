@@ -270,7 +270,7 @@ function drawChart() {
 
 yAxisTempGrid.transition().duration(1500).call(yAxisTemp.tickSize(-width, 0, 0).tickFormat(""));
 
-if (xAxisGrid.attr("transform") {
+if (xAxisGrid.attr("transform")) {
   xAxisGrid.transition().duration(1500).attr("transform", "translate(0," + heightTemp + ")").call(xAxis.tickSize(-heightTemp, 0, 0).tickFormat(""));
 }
 else {
