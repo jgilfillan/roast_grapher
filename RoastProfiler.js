@@ -243,9 +243,18 @@ function drawChart() {
 //temp change chart
   yRoR.domain(d3.extent(Array.prototype.concat.apply([], dataRoR), function(d) { return d.Value8; })).nice();
 
-  xAxisRoRg.attr("transform", "translate(0," + heightRoR + ")")
-    .transition().duration(1500)
-    .call(xAxisRoR.tickSize(null).tickFormat(d3.time.format('%M')));
+  if (xAxisRoRg.attr("transform")) {
+    // transition
+    xAxisRoRg.transition().duration(1500)
+      .attr("transform", "translate(0," + heightRoR + ")")
+      .call(xAxisRoR.tickSize(null).tickFormat(d3.time.format('%M')));
+  }
+  else {
+    // no transition
+    xAxisRoRg.attr("transform", "translate(0," + heightRoR + ")")
+      .call(xAxisRoR.tickSize(null).tickFormat(d3.time.format('%M')));
+  }
+    
 
   yAxisRoRg.transition().duration(1500).call(yAxisRoR.tickSize(null).tickFormat(null));
   // yAxisRoRg.append("text")
@@ -278,7 +287,14 @@ else {
 }
 
 yAxisRoRGrid.transition().duration(1500).call(yAxisRoR.tickSize(-width, 0, 0).tickFormat(""));
-xAxisRoRGrid.attr("transform", "translate(0," + heightRoR + ")").transition().duration(1500).call(xAxisRoR.tickSize(-heightRoR, 0, 0).tickFormat(""));
+
+if (xAxisGrid.attr("transform")) {
+  xAxisRoRGrid.transition().duration(1500).attr("transform", "translate(0," + heightRoR + ")").call(xAxisRoR.tickSize(-heightRoR, 0, 0).tickFormat(""));
+}
+else {
+  xAxisRoRGrid.attr("transform", "translate(0," + heightRoR + ")").call(xAxisRoR.tickSize(-heightRoR, 0, 0).tickFormat(""));
+}
+
 }
 
 d3.select(window).on('resize', resizeChartArea); 
