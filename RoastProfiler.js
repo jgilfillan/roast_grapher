@@ -288,7 +288,7 @@ else {
 
 yAxisRoRGrid.transition().duration(1500).call(yAxisRoR.tickSize(-width, 0, 0).tickFormat(""));
 
-if (xAxisGrid.attr("transform")) {
+if (xAxisRoRGrid.attr("transform")) {
   xAxisRoRGrid.transition().duration(1500).attr("transform", "translate(0," + heightRoR + ")").call(xAxisRoR.tickSize(-heightRoR, 0, 0).tickFormat(""));
 }
 else {
