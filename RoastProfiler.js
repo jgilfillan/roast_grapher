@@ -84,9 +84,19 @@ function resizeChartArea() {
   svg.attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom + margin.internal);
 
-  svgTemp.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-  svgRoR.attr("transform", "translate(" + margin.left + "," + (margin.top + margin.internal + heightTemp) + ")");
+  if (svgTemp.attr('transform')) {
+    svgTemp.transition().duration(1500).attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  }
+  else {
+    svgTemp.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  }
+  
+  if (svgRoR.attr('transform')) {
+    svgRoR.transition().duration(1500).attr("transform", "translate(" + margin.left + "," + (margin.top + margin.internal + heightTemp) + ")");
+  }
+  else {
+    svgRoR.attr("transform", "translate(" + margin.left + "," + (margin.top + margin.internal + heightTemp) + ")");
+  }
 
   // xAxisg.attr("class", "x axis");
 
