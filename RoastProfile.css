@@ -71,3 +71,8 @@ body {
 .grid-x line {
   stroke: #d3d3d3;
 }
+
+.border-row {
+    border-top: 1px solid #ccc;
+    padding-top: 5px;
+}

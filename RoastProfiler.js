@@ -38,6 +38,7 @@ var dropBoxOptions = {
   colorScale = d3.scale.ordinal().range(colorbrewer.Set1[5]).domain([0, 4])
   ;
 
+
 function resizeChartArea() {
   // responsive variables
   xSize = parseInt(d3.select('.chart-area').style('width'));
@@ -137,6 +138,29 @@ function excludeRoRDataBefore0(data) {
     return result;
 }
 
+// function to get area under curve in seconds Deg Celcius
+function getareaUnderCurve(x) {
+  var result;
+
+  result = x.reduce(function(a, b, i) {
+    var resultInterim;
+
+    // for all items except the last item in array
+    if (i < x.length - 1) {
+      resultInterim = (x[i+1].TimeOriginal - x[i].TimeOriginal) * (x[i].Value1 + x[i+1].Value1) / 2;    //trapezoid formula
+      return resultInterim + a;
+
+    }
+    // if last item in array do nothing
+    else {
+      return a;
+    }
+
+  }, 0);
+
+  return result;
+}
+
 
 function readLocalFile() {
   csvData = Papa.parse(document.getElementById('csvFile').files[0], {
@@ -156,7 +180,7 @@ function readLocalFile() {
 }
 
 function readDropBoxFile(files) {
-  console.log(files);
+  console.log(files[0].name);
   csvData = Papa.parse(files[0].link, {
     delimiter: "",
     header: true,
@@ -166,7 +190,7 @@ function readDropBoxFile(files) {
     encoding: "",
     worker: false,
     comments: false,
-    complete: processCSV,    //callback function
+    complete: processCSV(files[0].name),    //callback function
     download: true
     }
   );
@@ -190,10 +214,12 @@ function readDropBoxFile(files) {
 //   };
 // }
 
-function processCSV(results, file) {
+function processCSV(fileName) {
+  return function(results, file) {
 
-
+  // console.log(results);
   data.push(excludeDataAfterPull(results.data).map(function(d) {
+    d.TimeOriginal = +d.Time;
     d.Time = new Date(2000, 1, 1, 0, Math.floor((+d.Time)/60), +d.Time - (Math.floor((+d.Time)/60) * 60), 0);
     d.Value1 = +d.Value1;
     d.Value8 = +d.Value8;
@@ -201,15 +227,93 @@ function processCSV(results, file) {
     })
   );
 
+  data[data.length - 1].areaUnderCurve = getareaUnderCurve(data[data.length - 1]) / 60;
+  data[data.length - 1].fileName = fileName;
+
+  console.log(data);
+
+  dataRoR = data.map(function(d) {return excludeRoRDataBefore0(d);});
+
+  dataRoR[dataRoR.length - 1].fileName = fileName;
+
+  console.log(data, dataRoR);
+
+  // now resize char area and draw chart
+  resizeChartArea();
+};
+}
+
+function processCSV2(results, file) {
+
+  // console.log(results);
+  data.push(excludeDataAfterPull(results.data).map(function(d) {
+    d.TimeOriginal = +d.Time;
+    d.Time = new Date(2000, 1, 1, 0, Math.floor((+d.Time)/60), +d.Time - (Math.floor((+d.Time)/60) * 60), 0);
+    d.Value1 = +d.Value1;
+    d.Value8 = +d.Value8;
+    return d;
+    })
+  );
+
+  data.forEach(function(d) {d.areaUnderCurve = getareaUnderCurve(d);});
+
+  console.log(data);
+
   dataRoR = data.map(function(d) {return excludeRoRDataBefore0(d);})
 
   // now resize char area and draw chart
   resizeChartArea();
 }
 
+//update list of roasts in sidepanel
+function updateRoastList() {
+  
+  var roastListItem = d3.selectAll('.roast-list').selectAll('.roast-list-item').data(data, function(d) {return d.fileName;})
+    ,roastListItemNew
+    ,roastListItemExit;
+
+  roastListItem.select('.control-label')
+    .text(function(d) {console.log('changing text'); return d.fileName;});
+
+  console.log(roastListItem.enter());
+
+  roastListItemNew = roastListItem.enter()
+    .append('li')
+    .attr('class', 'roast-list-item');
+
+  roastListItemNew.append('div')
+    .attr('class', 'col-xs-12 border-row')
+    .append('label')
+    .attr('class', 'control-label')
+    .style('color', function(d, i) {return colorScale(i);})
+    .text(function(d) {return d.fileName;});
+
+  roastListItemNew.append('div')
+    .attr('class', 'col-xs-12')
+    .append('label')
+    .attr('class', 'control-label')
+    .style('color', function(d, i) {return colorScale(i);})
+    .text(function(d) {return 'Area under curve: ' + d3.round(+d.areaUnderCurve, 2) + ' minºC';});
+
+  roastListItemNew.append('div')
+    .attr('class', 'col-xs-6')
+    .append('span')
+    .attr('class', 'glyphicon glyphicon-eye-open');
+
+  roastListItemNew.append('div')
+    .attr('class', 'col-xs-6')
+    .append('span')
+    .attr('class', 'glyphicon glyphicon-trash');
+
+  roastListItem.exit().remove();
+
+}
+
 function drawChart() {
   var series,
       seriesRoR;
+
+  updateRoastList();
 
   series = svgTemp.selectAll('.line').data(data, function(d, i) {return i;}),
   seriesRoR = svgRoR.selectAll('.line').data(dataRoR, function(d, i) {return i;});
