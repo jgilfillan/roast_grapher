@@ -163,6 +163,7 @@ function getareaUnderCurve(x) {
 
 
 function readLocalFile() {
+  console.log(document.getElementById('csvFile').files[0].name);
   csvData = Papa.parse(document.getElementById('csvFile').files[0], {
     delimiter: "",
     header: true,
@@ -172,7 +173,7 @@ function readLocalFile() {
     encoding: "",
     worker: false,
     comments: false,
-    complete: processCSV,    //callback function
+    complete: processCSV(document.getElementById('csvFile').files[0].name),    //callback function
     download: false
     }
   );
