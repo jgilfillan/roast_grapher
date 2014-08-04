@@ -218,30 +218,36 @@ function readDropBoxFile(files) {
 function processCSV(fileName) {
   return function(results, file) {
 
-  // console.log(results);
-  data.push(excludeDataAfterPull(results.data).map(function(d) {
-    d.TimeOriginal = +d.Time;
-    d.Time = new Date(2000, 1, 1, 0, Math.floor((+d.Time)/60), +d.Time - (Math.floor((+d.Time)/60) * 60), 0);
-    d.Value1 = +d.Value1;
-    d.Value8 = +d.Value8;
-    return d;
-    })
-  );
+    // check file with same name not loaded and ensure only 5 files (including current) are loaded
+    if (data.filter(function(d) {return d.fileName === fileName;}).length === 0 && data.length < 5) {
+      // console.log(results);
+      data.push(excludeDataAfterPull(results.data).map(function(d) {
+        d.TimeOriginal = +d.Time;
+        d.Time = new Date(2000, 1, 1, 0, Math.floor((+d.Time)/60), +d.Time - (Math.floor((+d.Time)/60) * 60), 0);
+        d.Value1 = +d.Value1;
+        d.Value8 = +d.Value8;
+        return d;
+      })
+      );
 
-  data[data.length - 1].areaUnderCurve = getareaUnderCurve(data[data.length - 1]) / 60;
-  data[data.length - 1].fileName = fileName;
+      data[data.length - 1].areaUnderCurve = getareaUnderCurve(data[data.length - 1]) / 60;
+      data[data.length - 1].fileName = fileName;
 
-  console.log(data);
+      console.log(data);
 
-  dataRoR = data.map(function(d) {return excludeRoRDataBefore0(d);});
+      dataRoR = data.map(function(d) {return excludeRoRDataBefore0(d);});
 
-  dataRoR[dataRoR.length - 1].fileName = fileName;
+      dataRoR[dataRoR.length - 1].fileName = fileName;
 
-  console.log(data, dataRoR);
+      console.log(data, dataRoR);
 
-  // now resize char area and draw chart
-  resizeChartArea();
-};
+      // now resize char area and draw chart
+      resizeChartArea();
+    }
+
+    // popups to alert user if conditions not met
+    else { (data.filter(function(d) {return d.fileName === fileName;}).length > 0) ? window.alert("File names must be unique!") : window.alert('More than 5 profiles are not supported!');}
+  };
 }
 
 function processCSV2(results, file) {
