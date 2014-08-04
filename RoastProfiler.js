@@ -139,15 +139,28 @@ function excludeRoRDataBefore0(data) {
 }
 
 // function to get area under curve in seconds Deg Celcius
-function getareaUnderCurve(x) {
-  var result;
+function getareaUnderCurve(d) {
+  var result,
+      lineFromLoadToPull,
+      maxTemp,
+      maxTempTime;
 
-  result = x.reduce(function(a, b, i) {
+  maxTemp = d3.max(d.filter(function(d) { return (+d.Time > 60); }), function(d) {return +d.Value1; }); // higest temp afer 60 seconds into roast
+
+  //time at max temp
+  maxTempTime = d3.max(
+    d.filter(function(d) {return (+d.Time > 60 && +d.Value1 === maxTemp); }), //rows that match temp after 60 sec into roast
+    function(d) {return +d.Time;}
+  );
+
+  lineFromLoadToPull = d.filter(function(d) { return (+d.Time <= maxTempTime);  });
+
+  result = lineFromLoadToPull.reduce(function(a, b, i) {
     var resultInterim;
 
     // for all items except the last item in array
-    if (i < x.length - 1) {
-      resultInterim = (x[i+1].TimeOriginal - x[i].TimeOriginal) * (x[i].Value1 + x[i+1].Value1) / 2;    //trapezoid formula
+    if (i < lineFromLoadToPull.length - 1) {
+      resultInterim = (lineFromLoadToPull[i+1].TimeOriginal - lineFromLoadToPull[i].TimeOriginal) * (lineFromLoadToPull[i].Value1 + lineFromLoadToPull[i+1].Value1) / 2;    //trapezoid formula
       return resultInterim + a;
 
     }
