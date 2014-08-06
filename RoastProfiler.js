@@ -108,7 +108,8 @@ function resizeChartArea() {
   // yAxisRoRg.attr("class", "y axis");
 
   //only draw chart if there is data
-  if (data.length > 0) { drawChart(); }
+  // if (data.length > 0) { drawChart(); }
+  drawChart();
 }
 
 function dropBoxOnClick() {
@@ -247,7 +248,7 @@ function processCSV(fileName) {
 
       console.log(data);
 
-      dataRoR = data.map(function(d) {return excludeRoRDataBefore0(d);});
+      dataRoR.push(excludeRoRDataBefore0(data[data.length - 1]));
 
       dataRoR[dataRoR.length - 1].fileName = fileName;
 
@@ -262,27 +263,27 @@ function processCSV(fileName) {
   };
 }
 
-function processCSV2(results, file) {
+// function processCSV2(results, file) {
 
-  // console.log(results);
-  data.push(excludeDataAfterPull(results.data).map(function(d) {
-    d.timeOriginal = +d.Time;
-    d.Time = new Date(2000, 1, 1, 0, Math.floor((+d.Time)/60), +d.Time - (Math.floor((+d.Time)/60) * 60), 0);
-    d.Value1 = +d.Value1;
-    d.Value8 = +d.Value8;
-    return d;
-    })
-  );
+//   // console.log(results);
+//   data.push(excludeDataAfterPull(results.data).map(function(d) {
+//     d.timeOriginal = +d.Time;
+//     d.Time = new Date(2000, 1, 1, 0, Math.floor((+d.Time)/60), +d.Time - (Math.floor((+d.Time)/60) * 60), 0);
+//     d.Value1 = +d.Value1;
+//     d.Value8 = +d.Value8;
+//     return d;
+//     })
+//   );
 
-  data.forEach(function(d) {d.areaUnderCurve = getareaUnderCurve(d);});
+//   data.forEach(function(d) {d.areaUnderCurve = getareaUnderCurve(d);});
 
-  console.log(data);
+//   console.log(data);
 
-  dataRoR = data.map(function(d) {return excludeRoRDataBefore0(d);})
+//   dataRoR = data.map(function(d) {return excludeRoRDataBefore0(d);})
 
-  // now resize char area and draw chart
-  resizeChartArea();
-}
+//   // now resize char area and draw chart
+//   resizeChartArea();
+// }
 
 //update list of roasts in sidepanel
 function updateRoastList() {
@@ -291,11 +292,21 @@ function updateRoastList() {
     ,roastListItemNew
     ,roastListItemExit;
 
-  roastListItem.select('.control-label')
-    .text(function(d) {console.log('changing text'); return d.fileName;});
+  // update
+  roastListItem.selectAll('.roast-label')
+    .text(function(d) {return d.fileName;})
+    .style('color', function(d, i) {return colorScale(i);});
 
-  console.log(roastListItem.enter());
+  roastListItem.selectAll('.auc-label')
+    .text(function(d) {return 'Area under curve: ' + d3.round(+d.areaUnderCurve, 2) + ' minºC';})
+    .style('color', function(d, i) {return colorScale(i);});
 
+  roastListItem.select('.btn-trash')
+    .on('click', removeSeries)
+    ;
+
+
+  // enter
   roastListItemNew = roastListItem.enter()
     .append('li')
     .attr('class', 'roast-list-item');
@@ -303,24 +314,31 @@ function updateRoastList() {
   roastListItemNew.append('div')
     .attr('class', 'col-xs-12 border-row')
     .append('label')
-    .attr('class', 'control-label')
+    .attr('class', 'control-label roast-label')
     .style('color', function(d, i) {return colorScale(i);})
     .text(function(d) {return d.fileName;});
 
   roastListItemNew.append('div')
     .attr('class', 'col-xs-12')
     .append('label')
-    .attr('class', 'control-label')
+    .attr('class', 'control-label auc-label')
     .style('color', function(d, i) {return colorScale(i);})
     .text(function(d) {return 'Area under curve: ' + d3.round(+d.areaUnderCurve, 2) + ' minºC';});
 
   roastListItemNew.append('div')
     .attr('class', 'col-xs-6')
+    .append('button')
+    .attr('type', 'button')
+    .attr('class', 'btn btn-default btn-block btn-ra-menu')
     .append('span')
     .attr('class', 'glyphicon glyphicon-eye-open');
 
   roastListItemNew.append('div')
     .attr('class', 'col-xs-6')
+    .append('button')
+    .attr('type', 'button')
+    .attr('class', 'btn btn-default btn-block btn-trash')
+    .on('click', removeSeries)
     .append('span')
     .attr('class', 'glyphicon glyphicon-trash');
 
@@ -330,7 +348,7 @@ function updateRoastList() {
 
 function drawChart() {
   var series,
-      seriesRoR;
+  seriesRoR;
 
   updateRoastList();
 
@@ -341,30 +359,30 @@ function drawChart() {
   yTemp.domain(d3.extent(Array.prototype.concat.apply([], data), function(d) { return d.Value1; })).nice();
 
   if (xAxisg.attr('transform')) {
-  xAxisg.transition().duration(1500)
-      .attr("transform", "translate(0," + heightTemp + ")")
-      .call(xAxis.tickSize(null).tickFormat(d3.time.format('%M')));
+    xAxisg.transition().duration(1500)
+    .attr("transform", "translate(0," + heightTemp + ")")
+    .call(xAxis.tickSize(null).tickFormat(d3.time.format('%M')));
   }
   else {
     xAxisg.attr("transform", "translate(0," + heightTemp + ")")
-      .call(xAxis.tickSize(null).tickFormat(d3.time.format('%M')));
+    .call(xAxis.tickSize(null).tickFormat(d3.time.format('%M')));
   }
 
   yAxisTempg.transition().duration(1500).call(yAxisTemp.tickSize(null).tickFormat(null));
   yAxisTempg.append("text")
-    .attr("transform", "rotate(-90)")
-    .attr("y", 6)
-    .attr("dy", ".71em")
-    .style("text-anchor", "end")
-    .text("ºC");
+  .attr("transform", "rotate(-90)")
+  .attr("y", 6)
+  .attr("dy", ".71em")
+  .style("text-anchor", "end")
+  .text("ºC");
 
   // entering series
   series.enter()
-    .append("path")
-    .attr("class", "line")
-    .attr("d", line)
-    .style('stroke', function(d, i) {return colorScale(i);})
-    ;
+  .append("path")
+  .attr("class", "line")
+  .attr("d", line)
+  .style('stroke', function(d, i) {return colorScale(i);})
+  ;
 
   // updated series
   series.transition().duration(1500).attr("d", line);
@@ -374,20 +392,20 @@ function drawChart() {
 
 
 //temp change chart
-  yRoR.domain(d3.extent(Array.prototype.concat.apply([], dataRoR), function(d) { return d.Value8; })).nice();
+yRoR.domain(d3.extent(Array.prototype.concat.apply([], dataRoR), function(d) { return d.Value8; })).nice();
 
-  if (xAxisRoRg.attr("transform")) {
+if (xAxisRoRg.attr("transform")) {
     // transition
     xAxisRoRg.transition().duration(1500)
-      .attr("transform", "translate(0," + heightRoR + ")")
-      .call(xAxisRoR.tickSize(null).tickFormat(d3.time.format('%M')));
+    .attr("transform", "translate(0," + heightRoR + ")")
+    .call(xAxisRoR.tickSize(null).tickFormat(d3.time.format('%M')));
   }
   else {
     // no transition
     xAxisRoRg.attr("transform", "translate(0," + heightRoR + ")")
-      .call(xAxisRoR.tickSize(null).tickFormat(d3.time.format('%M')));
+    .call(xAxisRoR.tickSize(null).tickFormat(d3.time.format('%M')));
   }
-    
+
 
   yAxisRoRg.transition().duration(1500).call(yAxisRoR.tickSize(null).tickFormat(null));
   // yAxisRoRg.append("text")
@@ -397,36 +415,46 @@ function drawChart() {
   //   .style("text-anchor", "end");
     // .text("ºC");
 
-  seriesRoR.exit().transition().duration(1500).remove;
+    seriesRoR.exit().remove();
 
-  seriesRoR.enter()
+    seriesRoR.enter()
     .append("path")
     .attr("class", "line")
     .attr("d", lineRoR)
     .style('stroke', function(d, i) {return colorScale(i);});
 
-  seriesRoR.transition().duration(1500).attr("d", lineRoR);
+    seriesRoR.transition().duration(1500).attr("d", lineRoR);
 
   //grid lines
   
 
-yAxisTempGrid.transition().duration(1500).call(yAxisTemp.tickSize(-width, 0, 0).tickFormat(""));
+  yAxisTempGrid.transition().duration(1500).call(yAxisTemp.tickSize(-width, 0, 0).tickFormat(""));
 
-if (xAxisGrid.attr("transform")) {
-  xAxisGrid.transition().duration(1500).attr("transform", "translate(0," + heightTemp + ")").call(xAxis.tickSize(-heightTemp, 0, 0).tickFormat(""));
-}
-else {
-  xAxisGrid.attr("transform", "translate(0," + heightTemp + ")").call(xAxis.tickSize(-heightTemp, 0, 0).tickFormat(""));
+  if (xAxisGrid.attr("transform")) {
+    xAxisGrid.transition().duration(1500).attr("transform", "translate(0," + heightTemp + ")").call(xAxis.tickSize(-heightTemp, 0, 0).tickFormat(""));
+  }
+  else {
+    xAxisGrid.attr("transform", "translate(0," + heightTemp + ")").call(xAxis.tickSize(-heightTemp, 0, 0).tickFormat(""));
+  }
+
+  yAxisRoRGrid.transition().duration(1500).call(yAxisRoR.tickSize(-width, 0, 0).tickFormat(""));
+
+  if (xAxisRoRGrid.attr("transform")) {
+    xAxisRoRGrid.transition().duration(1500).attr("transform", "translate(0," + heightRoR + ")").call(xAxisRoR.tickSize(-heightRoR, 0, 0).tickFormat(""));
+  }
+  else {
+    xAxisRoRGrid.attr("transform", "translate(0," + heightRoR + ")").call(xAxisRoR.tickSize(-heightRoR, 0, 0).tickFormat(""));
+  }
+
 }
 
-yAxisRoRGrid.transition().duration(1500).call(yAxisRoR.tickSize(-width, 0, 0).tickFormat(""));
+function removeSeries(d) {
+  console.log('Data to remove');
+  console.log(d);
 
-if (xAxisRoRGrid.attr("transform")) {
-  xAxisRoRGrid.transition().duration(1500).attr("transform", "translate(0," + heightRoR + ")").call(xAxisRoR.tickSize(-heightRoR, 0, 0).tickFormat(""));
-}
-else {
-  xAxisRoRGrid.attr("transform", "translate(0," + heightRoR + ")").call(xAxisRoR.tickSize(-heightRoR, 0, 0).tickFormat(""));
-}
+  data = data.filter(function (x) {return (x.fileName !== d.fileName); });
+  dataRoR = dataRoR.filter(function (x) {return (x.fileName !== d.fileName); });
+  resizeChartArea();
 
 }
 
