@@ -144,23 +144,22 @@ function getareaUnderCurve(d) {
       lineFromLoadToPull,
       maxTemp,
       maxTempTime;
-
-  maxTemp = d3.max(d.filter(function(d) { return (+d.Time > 60); }), function(d) {return +d.Value1; }); // higest temp afer 60 seconds into roast
+  maxTemp = d3.max(d.filter(function(d) { return (+d.timeOriginal > 60); }), function(d) {return +d.Value1; }); // higest temp afer 60 seconds into roast
 
   //time at max temp
   maxTempTime = d3.max(
-    d.filter(function(d) {return (+d.Time > 60 && +d.Value1 === maxTemp); }), //rows that match temp after 60 sec into roast
-    function(d) {return +d.Time;}
+    d.filter(function(d) {return (+d.timeOriginal > 60 && +d.Value1 === maxTemp); }), //rows that match temp after 60 sec into roast
+    function(d) {return +d.timeOriginal;}
   );
 
-  lineFromLoadToPull = d.filter(function(d) { return (+d.Time <= maxTempTime);  });
+  lineFromLoadToPull = d.filter(function(d) { return (+d.timeOriginal <= maxTempTime);  });
 
   result = lineFromLoadToPull.reduce(function(a, b, i) {
     var resultInterim;
 
     // for all items except the last item in array
     if (i < lineFromLoadToPull.length - 1) {
-      resultInterim = (lineFromLoadToPull[i+1].TimeOriginal - lineFromLoadToPull[i].TimeOriginal) * (lineFromLoadToPull[i].Value1 + lineFromLoadToPull[i+1].Value1) / 2;    //trapezoid formula
+      resultInterim = (lineFromLoadToPull[i+1].timeOriginal - lineFromLoadToPull[i].timeOriginal) * (lineFromLoadToPull[i].Value1 + lineFromLoadToPull[i+1].Value1) / 2;    //trapezoid formula
       return resultInterim + a;
 
     }
@@ -235,7 +234,7 @@ function processCSV(fileName) {
     if (data.filter(function(d) {return d.fileName === fileName;}).length === 0 && data.length < 5) {
       // console.log(results);
       data.push(excludeDataAfterPull(results.data).map(function(d) {
-        d.TimeOriginal = +d.Time;
+        d.timeOriginal = +d.Time;
         d.Time = new Date(2000, 1, 1, 0, Math.floor((+d.Time)/60), +d.Time - (Math.floor((+d.Time)/60) * 60), 0);
         d.Value1 = +d.Value1;
         d.Value8 = +d.Value8;
@@ -267,7 +266,7 @@ function processCSV2(results, file) {
 
   // console.log(results);
   data.push(excludeDataAfterPull(results.data).map(function(d) {
-    d.TimeOriginal = +d.Time;
+    d.timeOriginal = +d.Time;
     d.Time = new Date(2000, 1, 1, 0, Math.floor((+d.Time)/60), +d.Time - (Math.floor((+d.Time)/60) * 60), 0);
     d.Value1 = +d.Value1;
     d.Value8 = +d.Value8;
