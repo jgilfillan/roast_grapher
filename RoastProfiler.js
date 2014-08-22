@@ -5,6 +5,7 @@ var dropBoxOptions = {
   multiselect: false,
   extensions: ['.csv']
   },
+  maxRoastProfiles = 5,
   csvData,
   xSize,
   ySize,
@@ -35,8 +36,11 @@ var dropBoxOptions = {
   yAxisRoRg = svgRoR.append("g").attr('class', 'y axis'),
   data = [],
   dataRoR = [],
-  colorScale = d3.scale.ordinal().range(colorbrewer.Set1[5]).domain([0, 4])
+  // colorScale = d3.scale.ordinal().range(colorbrewer.Set1[maxRoastProfiles]).domain([0, maxRoastProfiles - 1])
+  colorScale2 = ["#e41a1c", "#4daf4a", "#984ea3", "#ff7f00", "#377eb8"]
   ;
+
+
 
 
 function resizeChartArea() {
@@ -232,7 +236,7 @@ function processCSV(fileName) {
   return function(results, file) {
 
     // check file with same name not loaded and ensure only 5 files (including current) are loaded
-    if (data.filter(function(d) {return d.fileName === fileName;}).length === 0 && data.length < 5) {
+    if (data.filter(function(d) {return d.fileName === fileName;}).length === 0 && data.length < maxRoastProfiles) {
       // console.log(results);
       data.push(excludeDataAfterPull(results.data).map(function(d) {
         d.timeOriginal = +d.Time;
@@ -246,13 +250,15 @@ function processCSV(fileName) {
       data[data.length - 1].areaUnderCurve = getareaUnderCurve(data[data.length - 1]) / 60;
       data[data.length - 1].fileName = fileName;
 
-      console.log(data);
 
       dataRoR.push(excludeRoRDataBefore0(data[data.length - 1]));
 
       dataRoR[dataRoR.length - 1].fileName = fileName;
 
-      console.log(data, dataRoR);
+      // series color
+      data[data.length - 1].colour = colorScale2[0];
+      dataRoR[dataRoR.length - 1].colour = colorScale2[0];
+      colorScale2.shift();
 
       // now resize char area and draw chart
       resizeChartArea();
@@ -295,11 +301,11 @@ function updateRoastList() {
   // update
   roastListItem.selectAll('.roast-label')
     .text(function(d) {return d.fileName;})
-    .style('color', function(d, i) {return colorScale(i);});
+    .style('color', function(d, i) {return d.colour;});
 
   roastListItem.selectAll('.auc-label')
     .text(function(d) {return 'Area under curve: ' + d3.round(+d.areaUnderCurve, 2) + ' minºC';})
-    .style('color', function(d, i) {return colorScale(i);});
+    .style('color', function(d, i) {return d.colour;});
 
   roastListItem.select('.btn-trash')
     .on('click', removeSeries)
@@ -315,14 +321,14 @@ function updateRoastList() {
     .attr('class', 'col-xs-12 border-row')
     .append('label')
     .attr('class', 'control-label roast-label')
-    .style('color', function(d, i) {return colorScale(i);})
+    .style('color', function(d, i) {return d.colour;})
     .text(function(d) {return d.fileName;});
 
   roastListItemNew.append('div')
     .attr('class', 'col-xs-12')
     .append('label')
     .attr('class', 'control-label auc-label')
-    .style('color', function(d, i) {return colorScale(i);})
+    .style('color', function(d, i) {return d.colour;})
     .text(function(d) {return 'Area under curve: ' + d3.round(+d.areaUnderCurve, 2) + ' minºC';});
 
   roastListItemNew.append('div')
@@ -352,8 +358,8 @@ function drawChart() {
 
   updateRoastList();
 
-  series = svgTemp.selectAll('.line').data(data, function(d, i) {return i;}),
-  seriesRoR = svgRoR.selectAll('.line').data(dataRoR, function(d, i) {return i;});
+  series = svgTemp.selectAll('.line').data(data, function(d, i) {return d.fileName;}),
+  seriesRoR = svgRoR.selectAll('.line').data(dataRoR, function(d, i) {return d.fileName;});
 
   x.domain(d3.extent(Array.prototype.concat.apply([], data), function(d) { return d.Time; })).ticks(d3.time.minute.utc, 1);
   yTemp.domain(d3.extent(Array.prototype.concat.apply([], data), function(d) { return d.Value1; })).nice();
@@ -381,11 +387,13 @@ function drawChart() {
   .append("path")
   .attr("class", "line")
   .attr("d", line)
-  .style('stroke', function(d, i) {return colorScale(i);})
+  .style('stroke', function(d, i) {return d.colour;})
   ;
 
   // updated series
-  series.transition().duration(1500).attr("d", line);
+  series.transition().duration(1500).attr("d", line)
+    .style('stroke', function(d, i) {return d.colour;})
+    ;
 
   // exiting series
   series.exit().remove();
@@ -421,9 +429,11 @@ if (xAxisRoRg.attr("transform")) {
     .append("path")
     .attr("class", "line")
     .attr("d", lineRoR)
-    .style('stroke', function(d, i) {return colorScale(i);});
+    .style('stroke', function(d, i) {return d.colour;});
 
-    seriesRoR.transition().duration(1500).attr("d", lineRoR);
+    seriesRoR.transition().duration(1500).attr("d", lineRoR)
+    .style('stroke', function(d, i) {return d.colour;})
+    ;
 
   //grid lines
   
@@ -452,6 +462,7 @@ function removeSeries(d) {
   console.log('Data to remove');
   console.log(d);
 
+  colorScale2.push(d.colour);
   data = data.filter(function (x) {return (x.fileName !== d.fileName); });
   dataRoR = dataRoR.filter(function (x) {return (x.fileName !== d.fileName); });
   resizeChartArea();
